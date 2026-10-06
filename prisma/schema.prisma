@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String   // ブランド名 (例: "マクドナルド")
+  slug        String   @unique // 識別用スラッグ (例: "mcdonalds")
+  genre       String   // カテゴリ・ジャンル (例: "ハンバーガー")
+  officialUrl String   // 公式サイトURL
+  logoUrl     String?  // ブランドロゴまたはアイコン画像URL
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items       Item[]
+
+  @@index([genre])
+  @@index([slug])
+}
+
+model Item {
+  id          String    @id @default(cuid())
+  brandId     String
+  brand       Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  title       String    // 公式情報のタイトル
+  url         String    @unique // 公式ページのURL (重複防止)
+  imageUrl    String?   // 代表画像URL (1枚)
+  description String?   // 概要説明
+  types       String[]  // 情報タイプタグ (例: ["NEW_ITEM", "LIMITED_TIME", "CAMPAIGN"])
+  startsAt    DateTime? // 開始日時
+  endsAt      DateTime? // 終了日時
+  publishedAt DateTime? // 公式サイト公開日時
+  rawPayload  Json?     // アダプターが抽出した生データ (JSON)
+  createdAt   DateTime  @default(now()) // 取得日時
+  updatedAt   DateTime  @updatedAt
+
+  @@index([brandId])
+  @@index([publishedAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
