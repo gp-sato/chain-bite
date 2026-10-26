@@ -14,7 +14,7 @@
 npm install
 copy .env.local.example .env
 npm run db:start
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 npx prisma db seed
 npm run dev
 ```
@@ -43,6 +43,22 @@ Item（Brandに紐づく情報レコード）
 ```
 
 `lib/http.ts`、`lib/content.ts`、`lib/robots.ts` には、旧NexusFeedで検証したHTTP timeout、限定的なretry、URL解決、OGP画像抽出、robots.txtキャッシュの知見を残しています。RSS固有の `Source` や `NewsItem`、Vercel Queue、JobExecutionはChainBiteの初期MVPには持ち込みません。
+
+## 最初のデータ同期
+
+現在は吉野家の公式RSSを対象にしています。ローカルDBを起動してマイグレーションとブランドseedを適用した後、次のコマンドで取得・保存できます。
+
+```bash
+npm run sync:yoshinoya
+```
+
+同じ処理は、Node.js runtimeのRoute Handlerからも実行できます。開発サーバー起動後、`CRON_SECRET`を設定している場合は次のように呼び出します。
+
+```bash
+curl -H "Authorization: Bearer local-development-secret-key-12345" http://localhost:3000/api/cron/sync
+```
+
+RSSのタイトル・URL・公開日時・カテゴリを`Item`へ保存し、URLをキーに再実行時はUPSERTします。取得元のRSS項目は`rawPayload`にも残します。
 
 ## 現在の状態
 
