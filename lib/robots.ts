@@ -30,20 +30,16 @@ export class RobotsTxtCache {
         parser = cached.parser;
       } else {
         try {
-          const res = await fetchWithRetry(robotsUrl, {
+          const text = await fetchWithRetry(robotsUrl, {
             timeoutMs: 5000,
             maxRetries: 0,
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             },
+            readResponse: (response) => response.text(),
           });
 
-          if (res.ok) {
-            const text = await res.text();
-            parser = robotsParser(robotsUrl, text);
-          } else {
-            console.log(`robots.txt not found (Status ${res.status}) for ${origin}, treating as Fail Open.`);
-          }
+          parser = robotsParser(robotsUrl, text);
         } catch (error) {
           console.warn(`Failed to fetch robots.txt for ${origin}, treating as Fail Open:`, error);
         }
