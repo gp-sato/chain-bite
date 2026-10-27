@@ -22,6 +22,19 @@ export interface ItemListItem {
   brand: ItemBrandSummary
 }
 
+const NEW_ITEM_ALLOWLIST = [
+  /新商品/,
+  /新発売/,
+  /新登場/,
+  /新メニュー/,
+  /(?:[0-9０-９]{1,4}年\s*)?[0-9０-９]{1,2}月\s*[0-9０-９]{1,2}日\s*(?:から|より)\s*発売/,
+  /期間限定(?:で)?販売/,
+  /販売開始/,
+  /発売開始/,
+]
+
+const NEW_ITEM_DENYLIST = [/(?:販売|発売)(?:終了|停止|中止)/]
+
 /**
  * タイトルと公式サイトのカテゴリから、一覧表示用の情報タイプを判定します。
  * 判定できる表現だけをタグにし、曖昧なものは無理に分類しません。
@@ -54,7 +67,14 @@ export function inferItemTypes(title: string, categories: string[] = []): string
     types.add('IMPORTANT')
   }
 
-  if (/新商品|新発売|新登場|新メニュー|販売開始|発売開始/.test(text)) {
+  const hasNewItemPhrase = NEW_ITEM_ALLOWLIST.some((pattern) =>
+    pattern.test(text)
+  )
+  const hasNewItemExclusion = NEW_ITEM_DENYLIST.some((pattern) =>
+    pattern.test(text)
+  )
+
+  if (hasNewItemPhrase && !hasNewItemExclusion) {
     types.add('NEW_ITEM')
   }
 

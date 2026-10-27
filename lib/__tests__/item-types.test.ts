@@ -15,8 +15,13 @@ describe('item type inference', () => {
     }
   )
 
-  it('does not mark an end-of-sale notice as a new item', () => {
-    expect(inferItemTypes('牛丼の販売終了のお知らせ')).not.toContain('NEW_ITEM')
+  it.each([
+    '牛丼の販売終了のお知らせ',
+    '新商品販売終了のお知らせ',
+    '期間限定販売終了のお知らせ',
+    '発売停止のお知らせ',
+  ])('does not mark "%s" as a new item', (title) => {
+    expect(inferItemTypes(title)).not.toContain('NEW_ITEM')
   })
 
   it('does not treat a generic menu category as a new item', () => {
@@ -27,6 +32,13 @@ describe('item type inference', () => {
 
   it.each(['新発売のお知らせ', '販売開始のお知らせ'])(
     'marks an explicit new-item phrase "%s" as a new item',
+    (title) => {
+      expect(inferItemTypes(title)).toContain('NEW_ITEM')
+    }
+  )
+
+  it.each(['牛丼を10月8日から発売', '牛さんま定食の期間限定販売'])(
+    'marks a launch announcement "%s" as a new item',
     (title) => {
       expect(inferItemTypes(title)).toContain('NEW_ITEM')
     }
