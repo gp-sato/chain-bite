@@ -34,7 +34,7 @@ export function inferItemTypes(title: string, categories: string[] = []): string
     types.add('CAMPAIGN')
   }
 
-  if (/割引|値引|OFF|オフ/.test(text)) {
+  if (/割引|値引|[0-9０-９][0-9０-９,，]*\s*円引き|OFF|オフ/.test(text)) {
     types.add('DISCOUNT')
   }
 
@@ -46,7 +46,7 @@ export function inferItemTypes(title: string, categories: string[] = []): string
     types.add('COLLABORATION')
   }
 
-  if (/(店舗情報|グランドオープン|新店舗|店舗.*オープン)/.test(text)) {
+  if (/グランドオープン|新店舗.*(?:オープン|開店)|新規(?:開店|オープン|出店)/.test(text)) {
     types.add('NEW_STORE')
   }
 
@@ -54,7 +54,7 @@ export function inferItemTypes(title: string, categories: string[] = []): string
     types.add('IMPORTANT')
   }
 
-  if (/新商品|新登場|新メニュー|発売|販売|メニュー/.test(text)) {
+  if (/新商品|新発売|新登場|新メニュー|販売開始|発売開始/.test(text)) {
     types.add('NEW_ITEM')
   }
 
