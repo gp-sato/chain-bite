@@ -13,10 +13,11 @@ export class HttpError extends Error {
   }
 }
 
-export interface FetchWithRetryOptions extends RequestInit {
+export interface FetchWithRetryOptions<T = Response> extends RequestInit {
   timeoutMs?: number
   maxRetries?: number
   fetchImpl?: typeof fetch
+  readResponse?: (response: Response) => Promise<T>
 }
 
 /**
@@ -49,18 +50,20 @@ export function shouldRetryFetchError(error: unknown): boolean {
 
 /**
  * timeoutと限定的なretryを備えた、ブランド別アダプター共通のHTTP取得です。
- * Responseを返すため、HTML・JSON・XMLのどのアダプターからも利用できます。
+ * readResponseを指定すると、本文の読み取りまで同じtimeout・retryの対象になります。
+ * 指定しない場合はResponseを返すため、HTML・JSON・XMLのどのアダプターからも利用できます。
  */
-export async function fetchWithRetry(
+export async function fetchWithRetry<T = Response>(
   input: RequestInfo | URL,
-  options: FetchWithRetryOptions = {}
-): Promise<Response> {
+  options: FetchWithRetryOptions<T> = {}
+): Promise<T> {
   const {
     timeoutMs = DEFAULT_HTTP_TIMEOUT_MS,
     maxRetries = 1,
     fetchImpl = fetch,
     signal: externalSignal,
     headers: requestHeaders,
+    readResponse,
     ...requestInit
   } = options
 
@@ -94,7 +97,7 @@ export async function fetchWithRetry(
         )
       }
 
-      return response
+      return (readResponse ? await readResponse(response) : response) as T
     } catch (error) {
       lastError = error
       const canRetry = attempt < attempts - 1 && shouldRetryFetchError(error)

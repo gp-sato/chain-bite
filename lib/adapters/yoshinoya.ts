@@ -86,15 +86,16 @@ export const yoshinoyaAdapter: BrandAdapter = {
       throw new Error(`Robots.txt disallows fetching ${YOSHINOYA_FEED_URL}`)
     }
 
-    const response = await fetchWithRetry(YOSHINOYA_FEED_URL, {
+    const xml = await fetchWithRetry(YOSHINOYA_FEED_URL, {
       timeoutMs: 8_000,
       maxRetries: 1,
       signal: options.signal,
       headers: {
         accept: 'application/rss+xml, application/xml;q=0.9, text/xml;q=0.8',
       },
+      readResponse: (response) => response.text(),
     })
 
-    return parseYoshinoyaFeed(await response.text())
+    return parseYoshinoyaFeed(xml)
   },
 }
